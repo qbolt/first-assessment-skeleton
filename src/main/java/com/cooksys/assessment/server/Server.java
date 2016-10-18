@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 public class Server implements Runnable {
 	private Logger log = LoggerFactory.getLogger(Server.class);
-	
 	private int port;
 	private ExecutorService executor;
 	
@@ -23,11 +22,13 @@ public class Server implements Runnable {
 	public void run() {
 		log.info("server started");
 		ServerSocket ss;
+		Channel mainChannel = new Channel("main");
 		try {
 			ss = new ServerSocket(this.port);
 			while (true) {
 				Socket socket = ss.accept();
-				ClientHandler handler = new ClientHandler(socket);
+				ClientHandler handler = new ClientHandler(socket, mainChannel);
+				mainChannel.add(handler);
 				executor.execute(handler);
 			}
 		} catch (IOException e) {

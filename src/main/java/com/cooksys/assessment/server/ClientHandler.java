@@ -11,24 +11,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cooksys.assessment.model.Message;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ClientHandler implements Runnable {
 	private Logger log = LoggerFactory.getLogger(ClientHandler.class);
+	private ClientInfo clientInfo = new ClientInfo();
+	private Channel currentChannel;
 
 	private Socket socket;
+	PrintWriter writer;
+	BufferedReader reader;
+	
+	ObjectMapper mapper = new ObjectMapper();
 
-	public ClientHandler(Socket socket) {
+	public ClientHandler(Socket socket, Channel channel) {
 		super();
 		this.socket = socket;
+		this.currentChannel = channel;
 	}
 
+	public void writeMessage(Message message) throws JsonProcessingException {
+		String response = mapper.writeValueAsString(message);
+		writer.write(response);
+		writer.flush();
+	}
+	
 	public void run() {
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+			mapper = new ObjectMapper();
+			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
 			while (!socket.isClosed()) {
 				String raw = reader.readLine();
@@ -42,11 +56,13 @@ public class ClientHandler implements Runnable {
 						log.info("user <{}> disconnected", message.getUsername());
 						this.socket.close();
 						break;
+					case "broadcast":
+						log.info("user <{}> broadcasted message <{}>", message.getUsername(), message.getContents());
+						currentChannel.broadcastMessage(message);
+						break;
 					case "echo":
 						log.info("user <{}> echoed message <{}>", message.getUsername(), message.getContents());
-						String response = mapper.writeValueAsString(message);
-						writer.write(response);
-						writer.flush();
+						this.writeMessage(message);
 						break;
 				}
 			}
