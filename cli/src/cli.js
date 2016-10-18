@@ -37,7 +37,7 @@ cli
 
     if (command === 'disconnect') {
       server.end(new Message({ username, command }).toJSON() + '\n')
-    } else if (command === 'echo' || command === 'broadcast') {
+    } else if (command === 'echo' ||command === 'broadcast'||command[0] === '@') {
       server.write(new Message({ username, command, contents }).toJSON() + '\n')
     } else {
       this.log(`Command <${command}> was not recognized`)

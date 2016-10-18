@@ -16,7 +16,7 @@ public class Channel {
 	
 	private String channelName;
 	private List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
-	//private Queue<Message> broadcastQueue = new LinkedBlockingQueue<>();
+	
 
 	public Channel() {
 		numberOfChannels.getAndIncrement();
@@ -32,10 +32,22 @@ public class Channel {
 		clients.add(client);
 	}
 
-	public void broadcastMessage(Message message) throws JsonProcessingException {
+	public boolean sendPrivateMessage(Message message) throws InterruptedException {
+		String recipient = message.getCommand().substring(1);
+		
+		for (ClientHandler client : clients) {
+			if (client.getUsername().equals(recipient)) {
+				client.queueMessage(message);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void broadcastMessage(Message message) throws JsonProcessingException, InterruptedException {
 		synchronized (clients) {
 			for (ClientHandler client : clients) {
-				client.writeMessage(message);
+				client.queueMessage(message);
 			}
 		}
 	}

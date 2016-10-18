@@ -18,4 +18,5 @@ public class ClientInfo {
 	public String getUsername() {
 		return this.username;
 	}
+
 }
