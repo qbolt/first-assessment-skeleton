@@ -148,7 +148,6 @@ public class ClientHandler implements Runnable {
 			// last command.
 			} else if (!lastCommand.equals("")) {
 				String tmp = message.getCommand() + " " + message.getContents();
-				System.out.println(lastCommand);
 				message.setCommand(lastCommand);
 				message.setContents(tmp);
 				lastCommand = "";
