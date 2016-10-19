@@ -4,6 +4,7 @@ import { connect } from 'net'
 import { Message } from './Message'
 
 export const cli = vorpal()
+const chalk = cli.chalk
 
 let username
 let server
@@ -24,7 +25,22 @@ cli
     })
 
     server.on('data', (buffer) => {
-      this.log(Message.fromJSON(buffer).toString())
+      let message = (Message.fromJSON(buffer))
+
+      switch (message.command) {
+        case 'connect':
+          this.log(chalk.white.bgGreen(message.toString())); break
+        case 'disconnect':
+          this.log(chalk.white.bgRed(message.toString())); break
+        case 'echo':
+          this.log(chalk.blue(message.toString())); break
+        case 'broadcast':
+          this.log(chalk.cyan(message.toString())); break
+        case 'users':
+          this.log(chalk.yellow(message.toString())); break
+        case 'whisper':
+          this.log(chalk.magenta(message.toString())); break
+      }
     })
 
     server.on('end', () => {
