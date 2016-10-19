@@ -47,8 +47,12 @@ public class Message {
 		this.contents = contents;
 	}
 	
+	public void formatConnectionMessageContents(String contents) {
+		this.contents = ("" + Server.getCurrentTimeStamp() + ": <" + username + "> "+ contents + this.contents);
+	}
+	
 	public void formatContents(String contents) {
-		this.contents = ("" + Server.getCurrentTimeStamp() + " <" + getUsername() + "> " + contents + this.contents);
+		this.contents = ("" + Server.getCurrentTimeStamp() + " <" + username + "> " + contents + this.contents);
 	}
 
 }

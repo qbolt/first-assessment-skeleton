@@ -48,7 +48,6 @@ public class Channel {
 
 		for (ClientHandler client : clients) {
 			if (client.getUsername().equals(recipient)) {
-				message.setCommand("whisper");
 				client.queueMessage(message);
 				return true;
 			}
@@ -66,6 +65,14 @@ public class Channel {
 		}
 	}
 
+	public boolean usernameIsTaken(String username) {
+		for (ClientHandler client : clients) {
+			if (client.getUsername().equals(username))
+				return true;
+		}
+		return false;
+	}
+	
 	public String getChannelName() {
 		return this.channelName;
 	}

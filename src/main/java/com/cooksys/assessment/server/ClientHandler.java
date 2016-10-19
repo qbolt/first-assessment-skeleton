@@ -22,9 +22,11 @@ public class ClientHandler implements Runnable {
 	private Logger log = LoggerFactory.getLogger(ClientHandler.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private ExecutorService executor;
-	private ClientInfo clientInfo = new ClientInfo();
 	private BlockingQueue<Message> messageQueue = new LinkedBlockingQueue<>();
 	private Channel currentChannel;
+
+	private String username = "";
+	private String lastCommand = "";
 
 	private Socket socket;
 	PrintWriter writer;
@@ -44,33 +46,18 @@ public class ClientHandler implements Runnable {
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-			// Create thread to read messages from queue and send to client.
-			executor.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					while (!socket.isClosed()) {
-						try {
-							String response = mapper.writeValueAsString(messageQueue.take());
-							writer.write(response);
-							writer.flush();
-						} catch (JsonProcessingException | InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			});
-
 			// Read commands/messages and process them.
 			while (!socket.isClosed()) {
 				String raw = reader.readLine();
 				Message message = mapper.readValue(raw, Message.class);
 
-				// Set clientInfo/previous command.
-				clientInfo.setUsername(message.getUsername());
+				// Save username and process command
+				username = message.getUsername();
 				processMessage(message);
-				if (!message.getCommand().equals("users"))
-					clientInfo.setLastCommand(message.getCommand());
+
+				// Set command to be lastCommand if it makes sense to do so.
+				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect"))
+					lastCommand = message.getCommand();
 			}
 
 		} catch (IOException e) {
@@ -83,14 +70,32 @@ public class ClientHandler implements Runnable {
 	private void processMessage(Message message) throws InterruptedException, IOException {
 		switch (message.getCommand()) {
 		case "connect":
+			
 			log.info("user <{}> connected", message.getUsername());
+			// If client tries to connect with same username, notify client and
+			// close socket.
+			if (currentChannel.usernameIsTaken(message.getUsername())) {
+				log.info("<{}> name was taken", message.getUsername());
+				message.setCommand("alert");
+				message.setContents("Username is already taken. ");
+				message.formatContents("(alert): ");
+				String response = mapper.writeValueAsString(message);
+				writer.write(response);
+				writer.flush();
+				this.socket.close();
+				break;
+			}
 
-			// Add client to channel list.
+			// Create thread to read messages from queue and send to client.
+			this.startMessageSender();
+
+			// Add clientHandler to channel list.
 			currentChannel.addClient(this);
 
-			// Notify channel that user has connected.
-			message.formatContents("has connected. ");
+			// Notify channel that client has connected.
+			message.formatConnectionMessageContents("has connected. ");
 			currentChannel.broadcastMessage(message);
+
 			break;
 
 		case "disconnect":
@@ -102,7 +107,7 @@ public class ClientHandler implements Runnable {
 			currentChannel.removeClient(this);
 
 			// Notify channel that user has disconnected.
-			message.formatContents("has disconnected. ");
+			message.formatConnectionMessageContents("has disconnected. ");
 			currentChannel.broadcastMessage(message);
 			break;
 
@@ -138,21 +143,43 @@ public class ClientHandler implements Runnable {
 					message.setCommand("alert");
 					queueMessage(message);
 				}
-				
-			// If client didn't provide command, process message using the last command.
-			} else if (!clientInfo.getLastCommand().equals("")) {
+
+			// If client didn't provide command, process message using the
+			// last command.
+			} else if (!lastCommand.equals("")) {
 				String tmp = message.getCommand() + " " + message.getContents();
-				message.setCommand(clientInfo.getLastCommand());
+				System.out.println(lastCommand);
+				message.setCommand(lastCommand);
 				message.setContents(tmp);
+				lastCommand = "";
 				processMessage(message);
-				
+
 			// Else, command not recognized.
 			} else {
 				message.setContents("Command not recognized. ");
-				message.setCommand("");
+				message.setCommand("alert");
 				message.formatContents("(alert): ");
+				this.queueMessage(message);
 			}
 		}
+	}
+
+	private void startMessageSender() {
+		executor.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				while (!socket.isClosed()) {
+					try {
+						String response = mapper.writeValueAsString(messageQueue.take());
+						writer.write(response);
+						writer.flush();
+					} catch (JsonProcessingException | InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
 	}
 
 	public synchronized void queueMessage(Message message) throws InterruptedException {
@@ -161,6 +188,6 @@ public class ClientHandler implements Runnable {
 	}
 
 	public String getUsername() {
-		return clientInfo.getUsername();
+		return this.username;
 	}
 }

@@ -3,8 +3,8 @@ package com.cooksys.assessment.server;
 import com.cooksys.assessment.model.Message;
 
 public class ClientInfo {
-	private String username;
-	private String lastCommand;
+	private String username = "";
+	private String lastCommand = "";
 
 	public void setInfo(Message message) {
 		this.username = message.getUsername();

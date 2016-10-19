@@ -29,7 +29,7 @@ cli
 
       switch (message.command) {
         case 'connect':
-          this.log(chalk.white.bgGreen(message.toString())); break
+          this.log(chalk.black.bgGreen(message.toString())); break
         case 'disconnect':
           this.log(chalk.white.bgRed(message.toString())); break
         case 'echo':
@@ -38,8 +38,12 @@ cli
           this.log(chalk.cyan(message.toString())); break
         case 'users':
           this.log(chalk.yellow(message.toString())); break
-        case 'whisper':
-          this.log(chalk.magenta(message.toString())); break
+        case 'alert':
+          this.log(chalk.white.bgRed(message.toString())); break
+        default:
+          if (message.command.substring(0, 1) === '@') {
+            this.log(chalk.magenta(message.toString())); break
+          }
       }
     })
 
