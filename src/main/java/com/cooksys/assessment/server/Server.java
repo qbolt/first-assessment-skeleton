@@ -13,13 +13,14 @@ import org.slf4j.LoggerFactory;
 public class Server implements Runnable {
 
 	private Logger log = LoggerFactory.getLogger(Server.class);
-	private int port;
 	private ExecutorService executor;
-
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
+	private int port;
+	
 	public Server(int port, ExecutorService executor) {
 		super();
-		this.port = port;
 		this.executor = executor;
+		this.port = port;
 	}
 
 	public void run() {
@@ -39,9 +40,13 @@ public class Server implements Runnable {
 	}
 	
 	public static String getCurrentTimeStamp() {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
 	    Date now = new Date();
-	    return dateFormat.format(now);
+	    return DATE_FORMAT.format(now);
+	}
+	
+	public static String convertTimestampToString(long timestamp) {
+		Date time = new Date(timestamp);
+		return DATE_FORMAT.format(time);
 	}
 
 }

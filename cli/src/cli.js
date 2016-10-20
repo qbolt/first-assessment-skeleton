@@ -25,24 +25,24 @@ cli
     })
 
     server.on('data', (buffer) => {
-      let message = (Message.fromJSON(buffer))
-
+      const message = (Message.fromJSON(buffer))
+      const timestamp = chalk.white(message.timestamp)
       switch (message.command) {
         case 'connect':
-          this.log(chalk.black.bgGreen(message.toString())); break
+          this.log(timestamp + chalk.black.bgGreen(message.toString())); break
         case 'disconnect':
-          this.log(chalk.white.bgRed(message.toString())); break
+          this.log(timestamp + chalk.white.bgRed(message.toString())); break
         case 'echo':
-          this.log(chalk.blue(message.toString())); break
+          this.log(timestamp + chalk.blue(message.toString())); break
         case 'broadcast':
-          this.log(chalk.cyan(message.toString())); break
+          this.log(timestamp + chalk.cyan(message.toString())); break
         case 'users':
-          this.log(chalk.yellow(message.toString())); break
+          this.log(timestamp + chalk.yellow(message.toString())); break
         case 'alert':
-          this.log(chalk.white.bgRed(message.toString())); break
+          this.log(timestamp + chalk.white.bgRed(message.toString())); break
         default:
           if (message.command.substring(0, 1) === '@') {
-            this.log(chalk.magenta(message.toString())); break
+            this.log(timestamp + chalk.magenta(message.toString())); break
           }
       }
     })
@@ -58,7 +58,8 @@ cli
     if (command === 'disconnect') {
       server.end(new Message({ username, command }).toJSON() + '\n')
     } else {
-      server.write(new Message({ username, command, contents }).toJSON() + '\n')
+      const timestamp = new Date().getTime()
+      server.write(new Message({ username, command, contents, timestamp }).toJSON() + '\n')
     }
 
     callback()
