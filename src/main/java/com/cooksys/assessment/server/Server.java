@@ -17,6 +17,8 @@ public class Server implements Runnable {
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
 	private int port;
 	private Commands commands = new Commands();
+	private ServerSocket serverSocket;
+	
 	public Server(int port, ExecutorService executor) {
 		super();
 		this.executor = executor;
@@ -25,18 +27,23 @@ public class Server implements Runnable {
 
 	public void run() {
 		log.info("server started");
-		ServerSocket serverSocket;
-		Channel mainChannel = new Channel("Default");
 		try {
 			serverSocket = new ServerSocket(this.port);
+			Channel channel = new Channel("Default", executor, serverSocket);
+			
 			while (true) {
 				Socket socket = serverSocket.accept();
-				ClientHandler client = new ClientHandler(socket, mainChannel, executor, commands);
+				ClientHandler client = new ClientHandler(socket, channel, executor, commands);
 				executor.execute(client);
 			}
+			
 		} catch (IOException e) {
 			log.error("Something went wrong :/", e);
 		}
+	}
+	
+	public boolean isClosed() {
+		return serverSocket.isClosed();
 	}
 	
 	public static String getCurrentTimeStamp() {

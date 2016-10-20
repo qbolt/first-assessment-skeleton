@@ -29,7 +29,7 @@ public class ClientHandler implements Runnable {
 	private String username = "";
 	private String formattedUsername = "";
 	private String lastCommand = "";
-	private String lastWhisper = ""; //https://www.youtube.com/watch?v=BZf3bupexOw
+	private String lastWhisper = ""; // https://www.youtube.com/watch?v=BZf3bupexOw
 
 	private Socket socket;
 	PrintWriter writer;
@@ -62,10 +62,8 @@ public class ClientHandler implements Runnable {
 
 				// Set command to be lastCommand if command wasn't 'users' or
 				// 'connect'
-				if (!message.getCommand().equals("users") 
-						&& !message.getCommand().equals("connect")
-						&& !message.getCommand().equals("help")
-						&& !message.getCommand().equals("alert")) {
+				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect")
+						&& !message.getCommand().equals("help") && !message.getCommand().equals("alert")) {
 					lastCommand = message.getCommand();
 				}
 			}
@@ -156,7 +154,7 @@ public class ClientHandler implements Runnable {
 				processMessage(message);
 			}
 			break;
-			
+
 		default:
 
 			// Send a private message to specified user.
@@ -213,7 +211,7 @@ public class ClientHandler implements Runnable {
 	public String getUsername() {
 		return this.username;
 	}
-	
+
 	public void setLastWhisper(String username) {
 		this.lastWhisper = "@" + username;
 	}

@@ -19,7 +19,6 @@ public class Commands {
 		try {
 			Object obj = parser.parse(new FileReader("commands.json"));
 			JSONObject jsonObject = (JSONObject) obj;
-
 			JSONObject commands = (JSONObject) jsonObject.get("commands");
 
 			for (Object command : commands.keySet()) {
