@@ -29,7 +29,7 @@ public class Channel {
 		StringBuilder stringClients = new StringBuilder();
 
 		for (ClientHandler client : clients) {
-			stringClients.append(client.getUsername() + "\n");
+			stringClients.append(client.getUsername() + ((clients.indexOf(client) != clients.size() - 1) ? "\n" : ""));
 		}
 
 		return stringClients.toString();
@@ -72,7 +72,7 @@ public class Channel {
 		}
 		return false;
 	}
-	
+
 	public String getChannelName() {
 		return this.channelName;
 	}

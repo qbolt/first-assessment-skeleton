@@ -15,14 +15,15 @@ public class Message {
 		this.username = username;
 		this.command = command;
 		this.contents = contents;
-	}
-	
-	public Message(Message message, String lastCommand) {
-		this.username = message.username;
-		this.command = lastCommand;
-		this.contents = message.contents;
+		formatContents("(" + command + ")");
 	}
 
+	public void setMessage(String username, String command, String contents) {
+		this.username = username;
+		this.command = command;
+		this.contents = contents;
+	}
+	
 	public String getUsername() {
 		return username;
 	}
@@ -46,11 +47,11 @@ public class Message {
 	public void setContents(String contents) {
 		this.contents = contents;
 	}
-	
+
 	public void formatConnectionMessageContents(String contents) {
-		this.contents = ("" + Server.getCurrentTimeStamp() + ": <" + username + "> "+ contents + this.contents);
+		this.contents = ("" + Server.getCurrentTimeStamp() + ": <" + username + "> " + contents + this.contents);
 	}
-	
+
 	public void formatContents(String contents) {
 		this.contents = ("" + Server.getCurrentTimeStamp() + " <" + username + "> " + contents + this.contents);
 	}

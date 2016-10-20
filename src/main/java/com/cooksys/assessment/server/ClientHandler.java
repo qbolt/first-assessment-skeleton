@@ -53,11 +53,14 @@ public class ClientHandler implements Runnable {
 
 				// Save username and process command
 				username = message.getUsername();
+				log.info("1: <{}>", message.getCommand());
 				processMessage(message);
-
-				// Set command to be lastCommand if it makes sense to do so.
-				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect"))
+				
+				// Set command to be lastCommand if command wasn't 'users' or 'connect'
+				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect")) {
+					log.info("Setting last command to <{}>", message.getCommand());
 					lastCommand = message.getCommand();
+				}
 			}
 
 		} catch (IOException e) {
@@ -70,17 +73,14 @@ public class ClientHandler implements Runnable {
 	private void processMessage(Message message) throws InterruptedException, IOException {
 		switch (message.getCommand()) {
 		case "connect":
-			
+
 			log.info("user <{}> connected", message.getUsername());
 			// If client tries to connect with same username, notify client and
 			// close socket.
 			if (currentChannel.usernameIsTaken(message.getUsername())) {
 				log.info("<{}> name was taken", message.getUsername());
-				message.setCommand("alert");
-				message.setContents("Username is already taken. ");
-				message.formatContents("(alert): ");
-				String response = mapper.writeValueAsString(message);
-				writer.write(response);
+				message = new Message(message.getUsername(), "alert", "Username is already taken. ");
+				writer.write(mapper.writeValueAsString(message));
 				writer.flush();
 				this.socket.close();
 				break;
@@ -95,7 +95,6 @@ public class ClientHandler implements Runnable {
 			// Notify channel that client has connected.
 			message.formatConnectionMessageContents("has connected. ");
 			currentChannel.broadcastMessage(message);
-
 			break;
 
 		case "disconnect":
@@ -104,11 +103,11 @@ public class ClientHandler implements Runnable {
 
 			// Remove client from channel list.
 			log.info("user <{}> was removed from <{}>", this.getUsername(), currentChannel.getChannelName());
-			currentChannel.removeClient(this);
+			this.currentChannel.removeClient(this);
 
 			// Notify channel that user has disconnected.
 			message.formatConnectionMessageContents("has disconnected. ");
-			currentChannel.broadcastMessage(message);
+			this.currentChannel.broadcastMessage(message);
 			break;
 
 		// Broadcast message to all users in currentChannel
@@ -139,26 +138,21 @@ public class ClientHandler implements Runnable {
 				message.formatContents("(whisper): ");
 				if (!currentChannel.sendPrivateMessage(message)) {
 					log.info("could not find user <{}>", message.getCommand().substring(1));
-					message.formatContents("(alert): ");
-					message.setCommand("alert");
-					queueMessage(message);
+					queueMessage(new Message(message.getUsername(), "User not found.", "alert"));
 				}
 
-			// If client didn't provide command, process message using the
-			// last command.
+				// If client didn't provide command, process message using the
+				// last command.
 			} else if (!lastCommand.equals("")) {
-				String tmp = message.getCommand() + " " + message.getContents();
-				message.setCommand(lastCommand);
-				message.setContents(tmp);
-				lastCommand = "";
+				
+				message.setMessage(message.getUsername(), lastCommand,
+						message.getCommand() + " " + message.getContents());
+				log.info("Setting message command to <{}>", lastCommand);
 				processMessage(message);
 
-			// Else, command not recognized.
+				// Else, command not recognized.
 			} else {
-				message.setContents("Command not recognized. ");
-				message.setCommand("alert");
-				message.formatContents("(alert): ");
-				this.queueMessage(message);
+				this.queueMessage(new Message(message.getUsername(), "alert", "Command not recognized. "));
 			}
 		}
 	}
