@@ -49,6 +49,7 @@ public class Channel {
 		for (ClientHandler client : clients) {
 			if (client.getUsername().equals(recipient)) {
 				client.queueMessage(message);
+				client.setLastWhisper(message.getUsername());
 				return true;
 			}
 		}
