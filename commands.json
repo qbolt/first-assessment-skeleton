@@ -5,6 +5,7 @@
     "broadcast": "\"broadcast <message>\": Broadcasts message to all users in the current channel.",
     "users": "Displays list of users currently connected in your channel.",
     "help": "Displays a list of available commands and their usage",
-    "@username" : "\"@username <message>\": Sends a private message to the specified username"
+    "@username" : "\"@username <message>\": Sends a whisper to the specified username"
+    "/r": "\"/r <message>\": Sends a message to the last person to whisper you."
   }
 }
