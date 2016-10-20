@@ -53,12 +53,11 @@ public class ClientHandler implements Runnable {
 
 				// Save username and process command
 				username = message.getUsername();
-				log.info("1: <{}>", message.getCommand());
 				processMessage(message);
-				
-				// Set command to be lastCommand if command wasn't 'users' or 'connect'
+
+				// Set command to be lastCommand if command wasn't 'users' or
+				// 'connect'
 				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect")) {
-					log.info("Setting last command to <{}>", message.getCommand());
 					lastCommand = message.getCommand();
 				}
 			}
@@ -78,8 +77,8 @@ public class ClientHandler implements Runnable {
 			// If client tries to connect with same username, notify client and
 			// close socket.
 			if (currentChannel.usernameIsTaken(message.getUsername())) {
-				log.info("<{}> name was taken", message.getUsername());
-				message = new Message(message.getUsername(), "alert", "Username is already taken. ");
+				log.info("<{}> name was taken. Disconnecting user.", message.getUsername());
+				message.setMessage(message.getUsername(), "alert", "Username is already taken. ");
 				writer.write(mapper.writeValueAsString(message));
 				writer.flush();
 				this.socket.close();
@@ -138,13 +137,14 @@ public class ClientHandler implements Runnable {
 				message.formatContents("(whisper): ");
 				if (!currentChannel.sendPrivateMessage(message)) {
 					log.info("could not find user <{}>", message.getCommand().substring(1));
-					queueMessage(new Message(message.getUsername(), "User not found.", "alert"));
+					message.setMessage(message.getUsername(), "alert", "User not found. ");
+					queueMessage(message);
 				}
 
 				// If client didn't provide command, process message using the
 				// last command.
 			} else if (!lastCommand.equals("")) {
-				
+
 				message.setMessage(message.getUsername(), lastCommand,
 						message.getCommand() + " " + message.getContents());
 				log.info("Setting message command to <{}>", lastCommand);
@@ -152,7 +152,8 @@ public class ClientHandler implements Runnable {
 
 				// Else, command not recognized.
 			} else {
-				this.queueMessage(new Message(message.getUsername(), "alert", "Command not recognized. "));
+				message.setMessage(message.getUsername(), "alert", "Command not recognized. ");
+				this.queueMessage(message);
 			}
 		}
 	}
