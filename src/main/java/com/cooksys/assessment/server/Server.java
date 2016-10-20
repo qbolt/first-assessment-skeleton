@@ -16,7 +16,7 @@ public class Server implements Runnable {
 	private ExecutorService executor;
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
 	private int port;
-	
+	private Commands commands = new Commands();
 	public Server(int port, ExecutorService executor) {
 		super();
 		this.executor = executor;
@@ -31,7 +31,7 @@ public class Server implements Runnable {
 			serverSocket = new ServerSocket(this.port);
 			while (true) {
 				Socket socket = serverSocket.accept();
-				ClientHandler client = new ClientHandler(socket, mainChannel, executor);
+				ClientHandler client = new ClientHandler(socket, mainChannel, executor, commands);
 				executor.execute(client);
 			}
 		} catch (IOException e) {

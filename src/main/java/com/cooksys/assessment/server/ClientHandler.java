@@ -24,6 +24,7 @@ public class ClientHandler implements Runnable {
 	private ExecutorService executor;
 	private BlockingQueue<Message> messageQueue = new LinkedBlockingQueue<>();
 	private Channel currentChannel;
+	private Commands commands;
 
 	private String username = "";
 	private String formattedUsername = "";
@@ -33,11 +34,12 @@ public class ClientHandler implements Runnable {
 	PrintWriter writer;
 	BufferedReader reader;
 
-	public ClientHandler(Socket socket, Channel channel, ExecutorService executor) {
+	public ClientHandler(Socket socket, Channel channel, ExecutorService executor, Commands commands) {
 		super();
 		this.socket = socket;
 		this.currentChannel = channel;
 		this.executor = executor;
+		this.commands = commands;
 	}
 
 	public void run() {
@@ -59,7 +61,9 @@ public class ClientHandler implements Runnable {
 
 				// Set command to be lastCommand if command wasn't 'users' or
 				// 'connect'
-				if (!message.getCommand().equals("users") && !message.getCommand().equals("connect")) {
+				if (!message.getCommand().equals("users") 
+						&& !message.getCommand().equals("connect")
+						&& !message.getCommand().equals("help")) {
 					lastCommand = message.getCommand();
 				}
 			}
@@ -132,6 +136,12 @@ public class ClientHandler implements Runnable {
 		case "echo":
 			log.info("user <{}> echoed message <{}>", this.getUsername(), message.getContents());
 			message.setContents(formattedUsername + " (echo): " + message.getContents());
+			this.queueMessage(message);
+			break;
+
+		case "help":
+			log.info("user <{}> requested help <{}>", this.getUsername());
+			message.setContents("\n  Available commands: \n\n" + commands.getAllCommands());
 			this.queueMessage(message);
 			break;
 

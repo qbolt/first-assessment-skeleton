@@ -40,9 +40,13 @@ cli
           this.log(timestamp + chalk.yellow(message.toString())); break
         case 'alert':
           this.log(timestamp + chalk.white.bgRed(message.toString())); break
+        case 'help':
+          this.log(chalk.white(message.toString())); break
         default:
           if (message.command.substring(0, 1) === '@') {
             this.log(timestamp + chalk.magenta(message.toString())); break
+          } else {
+            this.log(timestamp + chalk.white(message.toString()))
           }
       }
     })
