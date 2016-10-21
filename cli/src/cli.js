@@ -52,6 +52,10 @@ cli
           }
       }
     })
+    server.on('error', (err) => {
+      this.log(err.name + ': ' + err.message)
+      cli.exec('exit')
+    })
 
     server.on('end', () => {
       cli.exec('exit')
