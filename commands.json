@@ -1,11 +1,20 @@
 {
-  "commands": {
+  "channelCommands": {
     "disconnect": "Disconnects from the server.",
+    "leave": "Leave current channel and return to lobby.",
     "echo": "\"echo <message>\": Echoes message back to sender.",
     "broadcast": "\"broadcast <message>\": Broadcasts message to all users in the current channel.",
     "users": "Displays list of users currently connected in your channel.",
     "help": "Displays a list of available commands and their usage",
     "@username" : "\"@username <message>\": Sends a whisper to the specified username",
     "/r": "\"/r <message>\": Sends a message to the last person to whisper you."
+  },
+
+  "lobbyCommands": {
+    "create": "\"create <channelName>\": Creates and enters new channel.",
+    "join": "\"join <channelName>\": If channel exists and username isn't already in channel.",
+    "list/channels": "Lists channels and users connected to channels.",
+    "disconnect": "Disconnect from the server.",
+    "username/name": "\"username <newUsername>\": Change username to specified username."
   }
 }
