@@ -71,12 +71,8 @@ public class ClientHandler implements Runnable {
 
 				// Set command to be lastCommand if in channel and if it makes
 				// sense.
-				if (message.getCommand().equals("users") || message.getCommand().equals("connect")
-						|| message.getCommand().equals("help") || message.getCommand().equals("alert")
-						|| message.getCommand().equals("create") || message.getCommand().equals("join")
-						|| message.getCommand().equals("leave") || message.getCommand().equals("name")) {
-					lastCommand = "";
-				} else {
+				if (message.getCommand().equals("broadcast") || message.getCommand().equals("echo")
+						|| message.getCommand().length() > 1 && message.getCommand().substring(0, 1).equals("@")) {
 					lastCommand = message.getCommand();
 				}
 			}
@@ -123,7 +119,6 @@ public class ClientHandler implements Runnable {
 				this.queueMessage(new Message(getUsername(), "connect", "Created and joined channel."));
 				currentChannel.addClient(this);
 			}
-			message.setCommand(""); // F
 			break;
 
 		case "join":
@@ -140,7 +135,6 @@ public class ClientHandler implements Runnable {
 				message.setMessage(getUsername(), "connect", formattedUsername + " has joined the channel.");
 				currentChannel.broadcastMessage(message);
 			}
-			message.setCommand("");
 			break;
 
 		case "help":
