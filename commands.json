@@ -12,8 +12,9 @@
 
   "lobbyCommands": {
     "create": "\"create <channelName>\": Creates and enters new channel.",
-    "join": "\"join <channelName>\": If channel exists and ",
+    "join": "\"join <channelName>\": If channel exists and username isn't already in channel.",
     "list/channels": "Lists channels and users connected to channels.",
-    "disconnect": "Disconnects from the server"
+    "disconnect": "Disconnect from the server.",
+    "username/name": "\"username <newUsername>\": Change username to specified username."
   }
 }

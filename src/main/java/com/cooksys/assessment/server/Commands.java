@@ -22,15 +22,14 @@ public class Commands {
 			JSONObject jsonObject = (JSONObject) obj;
 			JSONObject channelCommands = (JSONObject) jsonObject.get("channelCommands");
 			JSONObject lobbyCommands = (JSONObject) jsonObject.get("lobbyCommands");
-			
+
 			for (Object command : channelCommands.keySet()) {
 				channelCommandsMap.put((String) command, (String) channelCommands.get(command));
 			}
-			
+
 			for (Object command : lobbyCommands.keySet()) {
 				lobbyCommandsMap.put((String) command, (String) lobbyCommands.get(command));
 			}
-			
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -47,12 +46,12 @@ public class Commands {
 				.forEach((command, description) -> allCommands.append("    " + command + ": " + description + "\n\n"));
 		return allCommands.toString();
 	}
-	
+
 	public String getAllLobbyCommands() {
 		StringBuilder allCommands = new StringBuilder();
 		lobbyCommandsMap
 				.forEach((command, description) -> allCommands.append("    " + command + ": " + description + "\n\n"));
 		return allCommands.toString();
-		
+
 	}
 }

@@ -32,6 +32,7 @@ public class ClientHandler implements Runnable {
 	private String formattedUsername = "";
 	private String lastCommand = "";
 	private String lastWhisper = "";
+	boolean connected = false;
 
 	private BlockingQueue<Message> messageQueue = new LinkedBlockingQueue<>();
 	private ChannelManager channelManager;
@@ -59,10 +60,9 @@ public class ClientHandler implements Runnable {
 				Message message = mapper.readValue(raw, Message.class);
 
 				// Save username and process command
-				username = message.getUsername();
-				formattedUsername = "<" + username + ">";
+				setUsername(message.getUsername());
 
-				// Process message based on if user is in channel or in lobby.
+				// Process command based on if user is in channel or in lobby.
 				if (!inChannel) {
 					processLobbyCommand(message);
 				} else {
@@ -71,10 +71,12 @@ public class ClientHandler implements Runnable {
 
 				// Set command to be lastCommand if in channel and if it makes
 				// sense.
-				if (inChannel && !message.getCommand().equals("users") && !message.getCommand().equals("connect")
-						&& !message.getCommand().equals("help") && !message.getCommand().equals("alert")
-						&& !message.getCommand().equals("create") && !message.getCommand().equals("join")
-						&& !message.getCommand().equals("leave")) {
+				if (message.getCommand().equals("users") || message.getCommand().equals("connect")
+						|| message.getCommand().equals("help") || message.getCommand().equals("alert")
+						|| message.getCommand().equals("create") || message.getCommand().equals("join")
+						|| message.getCommand().equals("leave") || message.getCommand().equals("name")) {
+					lastCommand = "";
+				} else {
 					lastCommand = message.getCommand();
 				}
 			}
@@ -90,10 +92,18 @@ public class ClientHandler implements Runnable {
 		switch (message.getCommand()) {
 		case "connect":
 
-			log.info("user <{}> joined lobby.", getUsername());
-			// Start thread to send messages from queue to client.
-			startMessageSender();
-			sendLobbyWelcomeScreen();
+			if (connected) {
+				message.setCommand("invalid");
+				processLobbyCommand(message);
+			} else {
+
+				connected = true;
+				log.info("user <{}> joined lobby.", getUsername());
+
+				// Start thread to send messages from queue to client.
+				startMessageSender();
+				sendLobbyWelcomeScreen();
+			}
 
 			break;
 
@@ -113,7 +123,7 @@ public class ClientHandler implements Runnable {
 				this.queueMessage(new Message(getUsername(), "connect", "Created and joined channel."));
 				currentChannel.addClient(this);
 			}
-
+			message.setCommand(""); // F
 			break;
 
 		case "join":
@@ -130,7 +140,7 @@ public class ClientHandler implements Runnable {
 				message.setMessage(getUsername(), "connect", formattedUsername + " has joined the channel.");
 				currentChannel.broadcastMessage(message);
 			}
-
+			message.setCommand("");
 			break;
 
 		case "help":
@@ -138,10 +148,17 @@ public class ClientHandler implements Runnable {
 			message.setContents("\n  Available commands: \n\n" + commands.getAllLobbyCommands());
 			this.queueMessage(message);
 			break;
-			
+
 		case "list":
 		case "channels":
 			channelManager.setChannelsInfoMessage(message);
+			this.queueMessage(message);
+			break;
+
+		case "name":
+		case "username":
+			setUsername(message.getContents());
+			message.setMessage(getUsername(), "success", "Changed name to " + getUsername());
 			this.queueMessage(message);
 			break;
 
@@ -170,7 +187,7 @@ public class ClientHandler implements Runnable {
 
 			// Notify channel that client left.
 			message.setTimestamp();
-			message.setMessage(getUsername(), "disconnect", " has left the channel.");
+			message.setMessage(getUsername(), "disconnect", formattedUsername + " has left the channel.");
 
 			// Move user to lobby.
 			this.currentChannel.removeClient(this);
@@ -193,7 +210,7 @@ public class ClientHandler implements Runnable {
 
 			// Notify channel that client has disconnected.
 			message.setTimestamp();
-			message.setMessage(getUsername(), "disconnect", " has disconnected.");
+			message.setMessage(getUsername(), "disconnect", formattedUsername + " has disconnected.");
 			this.currentChannel.broadcastMessage(message);
 			break;
 
@@ -245,6 +262,7 @@ public class ClientHandler implements Runnable {
 			// last command.
 			else if (!lastCommand.equals("")) {
 
+				System.out.println(message.getCommand() + " " + message.getContents());
 				message.setMessage(getUsername(), lastCommand, message.getCommand() + " " + message.getContents());
 				log.info("Setting message command to <{}>", lastCommand);
 				processChannelCommand(message);
@@ -302,6 +320,11 @@ public class ClientHandler implements Runnable {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+		this.formattedUsername = "<" + username + ">";
 	}
 
 	public String getUsername() {
