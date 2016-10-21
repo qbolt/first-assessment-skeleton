@@ -28,7 +28,7 @@ public class Channel {
 		this.executor = executor;
 		this.serverSocket = serverSocket;
 		startBroadcaster();
-
+	
 	}
 
 	public void removeClient(ClientHandler client) {

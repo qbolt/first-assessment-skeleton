@@ -150,6 +150,7 @@ public class ClientHandler implements Runnable {
 
 		case "name":
 		case "username":
+			log.info("user <{}> changed name to <{}>", this.getUsername(), message.getContents());
 			setUsername(message.getContents());
 			this.queueMessage(new Message(getUsername(), "success", "Changed name to " + getUsername()));
 			break;
