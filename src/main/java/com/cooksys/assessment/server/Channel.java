@@ -22,27 +22,33 @@ public class Channel {
 	private List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
 	private BlockingQueue<Message> broadcastQueue = new LinkedBlockingQueue<>();
 
-	public Channel(Executor executor, ServerSocket serverSocket) {
+	public Channel(String channelName, Executor executor, ServerSocket serverSocket) {
 		numberOfChannels.getAndIncrement();
+		this.channelName = channelName;
 		this.executor = executor;
-		this.channelName = "NoName";
 		this.serverSocket = serverSocket;
 		startBroadcaster();
-	}
 
-	public Channel(String channelName, Executor executor, ServerSocket serverSocket) {
-		this(executor, serverSocket);
-		this.channelName = channelName;
 	}
 
 	public void removeClient(ClientHandler client) {
+		if (clients.size() == 1) {
+			clients.remove(client);
+			client.closeChannel();
+		}
 		clients.remove(client);
 	}
 
-	public void addClient(ClientHandler client) {
+	public boolean addClient(ClientHandler client) {
+		for (ClientHandler c : clients) {
+			if (c.getUsername().equals(client.getUsername())) {
+				return false;
+			}
+		}
 		clients.add(client);
+		return true;
 	}
-	
+
 	public String getConnectedClientsAsString() {
 		StringBuilder stringClients = new StringBuilder();
 
@@ -53,7 +59,7 @@ public class Channel {
 		return stringClients.toString();
 	}
 
-	public boolean sendPrivateMessage(Message message) throws InterruptedException {
+	public boolean sendPrivateMessage(Message message) {
 		String recipient = message.getCommand().substring(1);
 
 		for (ClientHandler client : clients) {
@@ -66,12 +72,12 @@ public class Channel {
 		return false;
 	}
 
-	public void broadcastMessage(Message message) throws JsonProcessingException, InterruptedException {
+	public void broadcastMessage(Message message) throws JsonProcessingException {
 		synchronized (clients) {
 			broadcastQueue.add(message);
 		}
 	}
-	
+
 	public void startBroadcaster() {
 		this.executor.execute(new Runnable() {
 
@@ -80,9 +86,11 @@ public class Channel {
 				while (!serverSocket.isClosed()) {
 					try {
 						Message message = broadcastQueue.take();
-						for (ClientHandler client : clients) {
-							if (client.getUsername() != message.getUsername()) {
-								client.queueMessage(message);
+						synchronized (clients) {
+							for (ClientHandler client : clients) {
+								if (client.getUsername() != message.getUsername()) {
+									client.queueMessage(message);
+								}
 							}
 						}
 
@@ -100,6 +108,10 @@ public class Channel {
 				return true;
 		}
 		return false;
+	}
+
+	public int getNumberOfClients() {
+		return clients.size();
 	}
 
 	public String getChannelName() {

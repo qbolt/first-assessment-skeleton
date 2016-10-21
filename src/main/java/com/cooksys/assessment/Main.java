@@ -16,11 +16,11 @@ public class Main {
 
 	public static void main(String[] args) {
 		ExecutorService executor = Executors.newCachedThreadPool();
-		
+
 		Server server = new Server(8080, executor);
-		
+
 		Future<?> done = executor.submit(server);
-		
+
 		try {
 			done.get();
 			executor.shutdown();
@@ -29,5 +29,5 @@ public class Main {
 			log.error("Something went wrong :/", e);
 		}
 	}
-	
+
 }

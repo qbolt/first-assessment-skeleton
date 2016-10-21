@@ -13,17 +13,24 @@ import org.json.simple.parser.ParseException;
 public class Commands {
 
 	private JSONParser parser = new JSONParser();
-	private Map<String, String> commandsMap = new HashMap<String, String>();
+	private Map<String, String> channelCommandsMap = new HashMap<String, String>();
+	private Map<String, String> lobbyCommandsMap = new HashMap<String, String>();
 
 	public Commands() {
 		try {
 			Object obj = parser.parse(new FileReader("commands.json"));
 			JSONObject jsonObject = (JSONObject) obj;
-			JSONObject commands = (JSONObject) jsonObject.get("commands");
-
-			for (Object command : commands.keySet()) {
-				commandsMap.put((String) command, (String) commands.get(command));
+			JSONObject channelCommands = (JSONObject) jsonObject.get("channelCommands");
+			JSONObject lobbyCommands = (JSONObject) jsonObject.get("lobbyCommands");
+			
+			for (Object command : channelCommands.keySet()) {
+				channelCommandsMap.put((String) command, (String) channelCommands.get(command));
 			}
+			
+			for (Object command : lobbyCommands.keySet()) {
+				lobbyCommandsMap.put((String) command, (String) lobbyCommands.get(command));
+			}
+			
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -34,15 +41,18 @@ public class Commands {
 		}
 	}
 
-	public String getCommand(String command) {
-		return commandsMap.get(command);
-	}
-
-	public String getAllCommands() {
+	public String getAllChannelCommands() {
 		StringBuilder allCommands = new StringBuilder();
-		commandsMap
+		channelCommandsMap
 				.forEach((command, description) -> allCommands.append("    " + command + ": " + description + "\n\n"));
 		return allCommands.toString();
 	}
-
+	
+	public String getAllLobbyCommands() {
+		StringBuilder allCommands = new StringBuilder();
+		lobbyCommandsMap
+				.forEach((command, description) -> allCommands.append("    " + command + ": " + description + "\n\n"));
+		return allCommands.toString();
+		
+	}
 }

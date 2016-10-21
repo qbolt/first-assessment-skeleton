@@ -29,9 +29,11 @@ cli
       const timestamp = chalk.white(message.timestamp)
       switch (message.command) {
         case 'connect':
-          this.log(timestamp + chalk.black.bgGreen(message.toString())); break
+          this.log(timestamp + chalk.green(message.toString())); break
         case 'disconnect':
-          this.log(timestamp + chalk.white.bgRed(message.toString())); break
+          this.log(timestamp + chalk.red(message.toString())); break
+        case 'success':
+          this.log(chalk.green(message.toString())); break
         case 'echo':
           this.log(timestamp + chalk.blue(message.toString())); break
         case 'broadcast':
@@ -39,14 +41,14 @@ cli
         case 'users':
           this.log(timestamp + chalk.yellow(message.toString())); break
         case 'alert':
-          this.log(timestamp + chalk.white.bgRed(message.toString())); break
+          this.log(chalk.red(message.toString())); break
         case 'help':
           this.log(chalk.white(message.toString())); break
         default:
           if (message.command.substring(0, 1) === '@') {
             this.log(timestamp + chalk.magenta(message.toString())); break
           } else {
-            this.log(timestamp + chalk.white(message.toString()))
+            this.log(timestamp + chalk.white(message.toString())); break
           }
       }
     })
