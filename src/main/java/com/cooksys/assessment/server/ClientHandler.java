@@ -247,8 +247,9 @@ public class ClientHandler implements Runnable {
 			else if (!lastCommand.equals("")) {
 
 				log.info("Setting message command to <{}>", lastCommand);
-				processChannelCommand(new Message(getUsername(), lastCommand,
-						message.getCommand() + " " + message.getContents(), message.getTimestamp()));
+				message.setMessage(getUsername(), lastCommand,
+						message.getCommand() + " " + message.getContents());
+				processChannelCommand(message);
 			}
 
 			// Else, command not recognized.
