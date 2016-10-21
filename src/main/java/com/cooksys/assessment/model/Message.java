@@ -12,10 +12,18 @@ public class Message {
 	public Message() {
 	}
 
+	public Message(String username, String command, String contents, String timestamp) {
+		this.username = username;
+		this.command = command;
+		this.contents = contents;
+		this.timestamp = timestamp;
+	}
+	
 	public Message(String username, String command, String contents) {
 		this.username = username;
 		this.command = command;
 		this.contents = contents;
+		setTimestamp();
 	}
 
 	public void setMessage(String username, String command, String contents) {

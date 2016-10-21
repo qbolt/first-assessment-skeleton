@@ -116,7 +116,7 @@ public class ClientHandler implements Runnable {
 			} else {
 				inChannel = true;
 				log.info("<{}> created new channel <{}>", getUsername(), currentChannel.getChannelName());
-				this.queueMessage(new Message(getUsername(), "connect", "Created and joined channel."));
+				this.queueMessage(new Message(getUsername(), "success", "Created and joined channel."));
 				currentChannel.addClient(this);
 			}
 			break;
@@ -131,16 +131,15 @@ public class ClientHandler implements Runnable {
 				inChannel = true;
 				log.info("<{}> created new channel <{}>", getUsername(), currentChannel.getChannelName());
 				this.queueMessage(new Message(getUsername(), "success", "Joined channel."));
-				message.setTimestamp();
-				message.setMessage(getUsername(), "connect", formattedUsername + " has joined the channel.");
-				currentChannel.broadcastMessage(message);
+				currentChannel.broadcastMessage(
+						new Message(getUsername(), "connect", formattedUsername + " has joined the channel."));
 			}
 			break;
 
 		case "help":
 			log.info("user <{}> requested help <{}>", this.getUsername());
-			message.setContents("\n  Available commands: \n\n" + commands.getAllLobbyCommands());
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), message.getCommand(),
+					"\n  Available commands: \n\n" + commands.getAllLobbyCommands()));
 			break;
 
 		case "list":
@@ -152,14 +151,12 @@ public class ClientHandler implements Runnable {
 		case "name":
 		case "username":
 			setUsername(message.getContents());
-			message.setMessage(getUsername(), "success", "Changed name to " + getUsername());
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), "success", "Changed name to " + getUsername()));
 			break;
 
 		default:
-			message.setMessage(getUsername(), "alert",
-					"Command not recognized. " + "Type <help> to view available commands.");
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), "alert",
+					"Command not recognized. " + "Type <help> to view available commands."));
 			break;
 		}
 	}
@@ -170,9 +167,8 @@ public class ClientHandler implements Runnable {
 		// Send list of users to client.
 		case "users":
 			log.info("user <{}> requested list of users.", this.getUsername());
-			message.setTimestamp();
-			message.setContents("Currently connected users: \n" + currentChannel.getConnectedClientsAsString());
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), message.getCommand(),
+					"Currently connected users: \n" + currentChannel.getConnectedClientsAsString()));
 			break;
 
 		// Returns user to lobby.
@@ -180,17 +176,14 @@ public class ClientHandler implements Runnable {
 			log.info("user <{}> was removed from <{}>", this.getUsername(), currentChannel.getChannelName());
 
 			// Notify channel that client left.
-			message.setTimestamp();
-			message.setMessage(getUsername(), "disconnect", formattedUsername + " has left the channel.");
-
 			// Move user to lobby.
 			this.currentChannel.removeClient(this);
-			this.currentChannel.broadcastMessage(message);
+			this.currentChannel.broadcastMessage(
+					new Message(getUsername(), "disconnect", formattedUsername + " has left the channel."));
 			this.inChannel = false;
 
 			// Print lobby info to user.
 			sendLobbyWelcomeScreen();
-
 			break;
 
 		// Disconnects client from server and removes from channel.
@@ -203,36 +196,34 @@ public class ClientHandler implements Runnable {
 			this.currentChannel.removeClient(this);
 
 			// Notify channel that client has disconnected.
-			message.setTimestamp();
-			message.setMessage(getUsername(), "disconnect", formattedUsername + " has disconnected.");
-			this.currentChannel.broadcastMessage(message);
+			this.currentChannel.broadcastMessage(
+					new Message(getUsername(), "disconnect", formattedUsername + " has disconnected."));
 			break;
 
 		// Broadcast message to all users in currentChannel
 		case "broadcast":
 			log.info("user <{}> broadcasted message <{}>", this.getUsername(), message.getContents());
-			message.setContents(formattedUsername + " (all): " + message.getContents());
-			this.currentChannel.broadcastMessage(message);
+			this.currentChannel.broadcastMessage(new Message(getUsername(), message.getCommand(),
+					formattedUsername + " (all): " + message.getContents(), message.getTimestamp()));
 			break;
 
 		// Echo message back to client.
 		case "echo":
 			log.info("user <{}> echoed message <{}>", this.getUsername(), message.getContents());
-			message.setContents(formattedUsername + " (echo): " + message.getContents());
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), message.getCommand(),
+					formattedUsername + " (echo): " + message.getContents(), message.getTimestamp()));
 			break;
 
 		case "help":
 			log.info("user <{}> requested help <{}>", this.getUsername());
-			message.setContents("\n  Available commands: \n\n" + commands.getAllChannelCommands());
-			this.queueMessage(message);
+			this.queueMessage(new Message(getUsername(), message.getCommand(),
+					"\n  Available commands: \n\n" + commands.getAllChannelCommands()));
 			break;
 
 		// Replies to user who last whispered client.
 		case "/r":
 			if (lastWhisper.equals("")) {
-				message.setMessage(username, "alert", "No one has whispered you yet.");
-				this.queueMessage(message);
+				this.queueMessage(new Message(getUsername(), "alert", "No one has whispered you yet."));
 			} else {
 				message.setCommand(lastWhisper);
 				processChannelCommand(message);
@@ -247,8 +238,7 @@ public class ClientHandler implements Runnable {
 				message.setContents(formattedUsername + " (whisper): " + message.getContents());
 				if (!currentChannel.sendPrivateMessage(message)) {
 					log.info("could not find user <{}>", message.getCommand().substring(1));
-					message.setMessage(getUsername(), "alert", "User not found. ");
-					this.queueMessage(message);
+					this.queueMessage(new Message(getUsername(), "alert", "User not found."));
 				}
 			}
 
@@ -256,17 +246,15 @@ public class ClientHandler implements Runnable {
 			// last command.
 			else if (!lastCommand.equals("")) {
 
-				System.out.println(message.getCommand() + " " + message.getContents());
-				message.setMessage(getUsername(), lastCommand, message.getCommand() + " " + message.getContents());
 				log.info("Setting message command to <{}>", lastCommand);
-				processChannelCommand(message);
+				processChannelCommand(new Message(getUsername(), lastCommand,
+						message.getCommand() + " " + message.getContents(), message.getTimestamp()));
 			}
 
 			// Else, command not recognized.
 			else {
-				message.setMessage(getUsername(), "alert",
-						"Command not recognized. " + "Type <help> to view available commands.");
-				this.queueMessage(message);
+				this.queueMessage(new Message(getUsername(), "alert",
+						"Command not recognized. " + "Type <help> to view available commands."));
 			}
 		}
 	}
@@ -279,7 +267,7 @@ public class ClientHandler implements Runnable {
 		this.queueMessage(message);
 		Thread.sleep(10);
 		this.queueMessage(
-				new Message(getUsername(), "connect", "Entered lobby. Type <help> to view available commands."));
+				new Message(getUsername(), "success", "Entered lobby. Type <help> to view available commands."));
 	}
 
 	// Thread to read messages from queue and send to client.
